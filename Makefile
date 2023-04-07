@@ -4,13 +4,19 @@ TESTS_DIR=ci/tests
 COMPOSE_TIMEOUT=20
 SERVICES_TIMEOUT=15
 
+# docker volume create --name maven-repo
+# docker run -it -v maven-repo:/root/.m2
+
+#MVN=docker run -it --rm --name my-maven-project -v maven-repo:/root/.m2 -v "$$(pwd)":/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn 
+MVN=docker run -it --rm --name my-maven-project -v maven-repo:/root/.m2 -v "$$(pwd)":/usr/src/mymaven -w /usr/src/mymaven adoptopenjdk/maven-openjdk11 mvn
+
 default:
 
 installLocalDependencies:
-	mvn install:install-file -Dfile=./server/lib/ditaamini-1.0.3.jar -DgroupId=ditaa -DartifactId=ditaa-mini -Dversion=1.0.3 -Dpackaging=jar
+	$(MVN) install:install-file -Dfile=./server/lib/ditaamini-1.0.3.jar -DgroupId=ditaa -DartifactId=ditaa-mini -Dversion=1.0.3 -Dpackaging=jar
 
 buildServer:
-	mvn --no-transfer-progress clean package
+	$(MVN) clean package
 
 setServerVersion:
 ifndef RELEASE_VERSION

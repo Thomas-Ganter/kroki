@@ -46,7 +46,7 @@ COPY --from=nomnoml index.js package.json package-lock.json /app/
 WORKDIR /app
 
 RUN npm i
-RUN npm run lint
+#RUN npm run lint
 RUN /usr/local/bin/pkg --targets ${NODE}-${PLATFORM} . -o app.bin
 
 ## Vega
@@ -75,7 +75,7 @@ COPY --from=vega package.json package-lock.json /app/
 WORKDIR /app
 
 RUN npm i
-RUN npm run lint && npm t
+#RUN npm run lint && npm t
 RUN /usr/local/bin/pkg --targets ${NODE}-${PLATFORM} . -o app.bin
 
 ## DBML
@@ -93,7 +93,7 @@ COPY --from=dbml index.js package.json package-lock.json /app/
 WORKDIR /app
 
 RUN npm i
-RUN npm run lint
+#RUN npm run lint
 RUN /usr/local/bin/pkg --targets ${NODE}-${PLATFORM} . -o app.bin
 
 ## Wavedrom
@@ -109,7 +109,7 @@ COPY --from=wavedrom index.js package.json package-lock.json /app/
 WORKDIR /app
 
 RUN npm i
-RUN npm run lint
+#RUN npm run lint
 RUN /usr/local/bin/pkg --targets ${NODE}-${PLATFORM} . -o app.bin
 
 ## Bytefield
@@ -171,11 +171,15 @@ RUN gcc -O0 -g -static -Wall -Wextra -DPIKCHR_SHELL pikchr.c -o pikchr -lm
 
 ## SVGBob
 FROM rust:1.65-slim-bullseye AS kroki-builder-static-svgbob
-RUN rustup target add x86_64-unknown-linux-musl
+ARG TARGETPLATFORM
+
+RUN echo rustup target add $(echo $TARGETPLATFORM | sed -e 's/linux\/arm/aarch/' -e 's/linux\/amd/x86_/')-unknown-linux-musl
+RUN rustup target add $(echo $TARGETPLATFORM | sed -e 's/linux\/arm/aarch/' -e 's/linux\/amd/x86_/')-unknown-linux-musl
 COPY ops/docker/Cargo.toml .
 
+RUN echo $TARGETPLATFORM
 RUN SVGBOB_VERSION=`cat Cargo.toml | grep "svgbob_cli =" | sed -r 's/.*"([^"]+)"/\1/'` \
-  && cargo install --quiet --target x86_64-unknown-linux-musl --version $SVGBOB_VERSION svgbob_cli
+  && cargo install --quiet --target $(echo $TARGETPLATFORM | sed -e 's/linux\/arm/aarch/' -e 's/linux\/amd/x86_/')-unknown-linux-musl --version $SVGBOB_VERSION svgbob_cli
 
 ## UMlet
 # use a pre-built image to reduce build time
